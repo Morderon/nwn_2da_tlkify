@@ -69,5 +69,7 @@ The above will change the "Description" column of a 2da for 2da rows 1, 4, and 6
 ## Notes:
 
 A starting strref of highest will append everything to the end of the tlk.
+
 This program doesn't currently care if a strref has a value or not and will overwrite the current value.
+
 Feel free to supply the same value multiple times, the program will only put one instance into the tlk file.
