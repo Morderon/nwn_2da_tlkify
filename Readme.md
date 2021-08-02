@@ -46,7 +46,8 @@ All other elements names should match the column names of the 2da, this is case 
 
 Example json:
 
-```[
+```
+[
 	{
 		"id": 1,
 		"Description": "domain 1"
