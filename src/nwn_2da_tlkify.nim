@@ -1,11 +1,11 @@
-import neverwinter/twoda, neverwinter/tlk, docopt, options, streams, json, parsecfg, os, parseutils  #streams, options, json, parsecfg, re, os, strutils, typetraits
+import neverwinter/twoda, neverwinter/tlk, docopt, options, streams, json, parsecfg, os, parseutils, strutils  #streams, options, json, parsecfg, re, os, strutils, typetraits
 
 let doc = """
 Update 2da and tlk files for NWN 1
 
 Usage:
   nwn_2da_tlkify [options]
-  
+
 Options:
   -i TLK                      Input TLK file, Config key: tlk
   -s START                    Starting StrRef, Config key: start [default: highest]
@@ -14,8 +14,9 @@ Options:
   -a OUTDIR                   2da output directory Config key: outtwoda
   -j JSONDIR                  Json Input directory, Config key: tlkjson
   -c CONFIG                   Configuration file [default: 2tconfig.ini]
+  --auto-lower-off            Turns off converting ConverName in racialtypes to lower case
  """
- 
+
 let args = docopt(doc)
 
 
@@ -28,7 +29,7 @@ proc find(self: SingleTlk, str: string): int =
       break
 
 
-var 
+var
  inputfile = $args["-i"]
  dict: Config
  outtlk = $args["-o"]
@@ -39,9 +40,10 @@ var
  start: int
 
 
-let 
+let
   confl = $args["-c"]
   configExist = fileExists(confl)
+  autol = args["--auto-lower-off"]
 if configExist:
   dict = loadConfig(confl)
   if outtlk == "nil":
@@ -56,13 +58,13 @@ if configExist:
     inputfile = dict.getSectionValue("General","tlk", "nil")
   if starts == "highest":
     starts = dict.getSectionValue("General","start", "highest")
- 
+
 if outtlk == "nil":
   quit("Error: No output defined for tlk.")
 if injson == "nil":
   quit("Error: No input directory defined for json.")
 if intwoda == "nil":
-  quit("Error: No input directory defined for 2das.") 
+  quit("Error: No input directory defined for 2das.")
 if outtwoda == "nil":
   quit("Error: No output directory defined for 2das.")
 if (parseInt(starts, start) == 0 and starts != "highest"):
@@ -76,7 +78,7 @@ if inputfile != "nil":
   if fileExists(inputfile):
     state  = openFileStream(inputfile).readSingleTlk()
   else:
-    quit("Error: Tlk input file supplied but does not exist.") 
+    quit("Error: Tlk input file supplied but does not exist.")
 else:
   starts = "" #initilize start here for new tlks
   start = 0
@@ -85,6 +87,14 @@ else:
 const tlkoffset = 16777216
 var row: Row
 
+proc UpdateRAndT(self: Row, colID: int, value: string) =
+  let strref = state.find(value)
+  if strref > -1:
+    row[colID] = some($(strref+tlkoffset))
+  else:
+    row[colID] = some($(start+tlkoffset))
+    state[start.StrRef] = value
+    start += 1
 
 if starts == "highest":
   start = state.highest()+1
@@ -103,26 +113,28 @@ for file in walkFiles(injson&"*.json"):
         for p in pairs(itm):
           if $p.key == "id":
             continue
-          let colID = twoda.columns.find($p.key)
+          var colID = twoda.columns.find($p.key)
           if colID == -1:
             echo "Column name " & $p.key & " not found in " & filesplit.name
             continue
-          let strref = state.find(p.val.getStr())
-          
-          if strref > -1:
-            row[colID] = some($(strref+tlkoffset)) 
-          else:
-            row[colID] = some($(start+tlkoffset)) 
-            state[start.StrRef] = p.val.getStr()
-            start += 1
+
+          row.UpdateRAndT(colID, p.val.getStr())
+
+          if not autol and filesplit.name == "racialtypes" and $p.key == "ConverName" and not itm.hasKey("ConverNameLower"):
+            colID = twoda.columns.find("ConverNameLower")
+            if colID == -1:
+              echo "Column name ConverNameLower not found in racialtypes"
+            else:
+              row.UpdateRAndT(colID, itm["ConverName"].getStr().toLowerAscii)
+
           twoda[rowID]=row
+
       else:
         echo "This does not have a valid id."
-      
+
       let outda = newFileStream(outtwoda&filesplit.name&".2da", fmWrite)
       outda.writeTwoDA(twoda)
 
 let output = openFileStream(outtlk, fmWrite)
 
 output.writeTlk(state)
-             
