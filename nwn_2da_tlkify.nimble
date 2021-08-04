@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.1.1"
 author        = "Morderon"
 description   = "Updates 2da tlk entries and tlk table for NWN 1"
 license       = "MIT"
