@@ -14,7 +14,9 @@ Options:
   -a OUTDIR                   2da output directory Config key: outtwoda
   -j JSONDIR                  Json Input directory, Config key: tlkjson
   -c CONFIG                   Configuration file [default: 2tconfig.ini]
-  --auto-lower-off            Turns off converting ConverName in racialtypes to lower case
+  --auto-lower SEL            Turns on, off, or on for a specific 2da the automatically setting
+                              the Lower field in classes or ConverNameLower field in racialtypes
+                              Possible selections: all, off, class, and race. [default: all]
  """
 
 let args = docopt(doc)
@@ -43,7 +45,8 @@ var
 let
   confl = $args["-c"]
   configExist = fileExists(confl)
-  autol = args["--auto-lower-off"]
+  autol = $args["--auto-lower"]
+
 if configExist:
   dict = loadConfig(confl)
   if outtlk == "nil":
@@ -104,7 +107,9 @@ for file in walkFiles(injson&"*.json"):
   if not fileExists(intwoda&filesplit.name&".2da"):
     echo "Json found for " & filesplit.name & " but no corresponding 2da."
   else:
-    let twoda = openFileStream(intwoda&filesplit.name&".2da").readTwoDA()
+    let twodas = openFileStream(intwoda&filesplit.name&".2da")
+    let twoda = twodas.readTwoDA()
+    twodas.close
     let json = parseFile(file)
     for itm in items(json):
       if itm.hasKey("id"):
@@ -120,12 +125,18 @@ for file in walkFiles(injson&"*.json"):
 
           row.UpdateRAndT(colID, p.val.getStr())
 
-          if not autol and filesplit.name == "racialtypes" and $p.key == "ConverName" and not itm.hasKey("ConverNameLower"):
+          if (autol == "all" or autol == "race") and filesplit.name == "racialtypes" and $p.key == "ConverName" and not itm.hasKey("ConverNameLower"):
             colID = twoda.columns.find("ConverNameLower")
             if colID == -1:
               echo "Column name ConverNameLower not found in racialtypes"
             else:
               row.UpdateRAndT(colID, itm["ConverName"].getStr().toLowerAscii)
+          elif (autol == "all" or autol == "class") and filesplit.name == "classes" and $p.key == "Name" and not itm.hasKey("Lower"):
+            colID = twoda.columns.find("Lower")
+            if colID == -1:
+              echo "Column name Lower not found in classes"
+            else:
+              row.UpdateRAndT(colID, itm["Name"].getStr().toLowerAscii)
 
           twoda[rowID]=row
 
@@ -134,6 +145,7 @@ for file in walkFiles(injson&"*.json"):
 
       let outda = newFileStream(outtwoda&filesplit.name&".2da", fmWrite)
       outda.writeTwoDA(twoda)
+      outda.close
 
 let output = openFileStream(outtlk, fmWrite)
 
