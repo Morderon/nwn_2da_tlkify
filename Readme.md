@@ -73,3 +73,7 @@ A starting strref of highest will append everything to the end of the tlk.
 This program doesn't currently care if a strref has a value or not and will overwrite the current value.
 
 Feel free to supply the same value multiple times, the program will only put one instance into the tlk file.
+
+## Known issues:
+
+SpellDesc field from spells.2da isn't fully supported. Depending on how you use this tool, the tlk strrefs may change from one use to the next which will cause scroll items to have the wrong description
