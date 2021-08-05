@@ -76,4 +76,4 @@ Feel free to supply the same value multiple times, the program will only put one
 
 ## Known issues:
 
-SpellDesc field from spells.2da isn't fully supported. Depending on how you use this tool, the tlk strrefs may change from one use to the next which will cause scroll items to have the wrong description
+SpellDesc and Name field from spells.2da isn't fully supported. Depending on how you use this tool, the tlk strrefs may change from one use to the next which will cause scroll items to have the wrong description
