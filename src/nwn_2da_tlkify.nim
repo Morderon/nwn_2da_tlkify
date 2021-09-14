@@ -177,8 +177,6 @@ proc SafeAddToRow(self: TwoDA, row: Row, col: string, val: string, startp: strin
 
 proc ResrvSpells(self: Row, colID: int, value: string, rowID: int, offset: int) =
   if rsvspl > -1:
-    if rowID == 49:
-      echo start["spells"]+rowID*2+offset
     if rsvspl <= 839 or rowID <= 839:
       row.UpdateRAndTSpec(colID, value, start["spells"]+rowID*2+offset)
     else:
@@ -347,6 +345,6 @@ for k, v in tblstream.pairs:
   outda.writeTwoDA(v)
   outda.close
 
-let output = openFileStream(outtlk, fmWrite)
+let output = newFileStream(outtlk, fmWrite)
 
 output.writeTlk(state)
