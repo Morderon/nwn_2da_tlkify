@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.1.1"
+version       = "0.1.2"
 author        = "Morderon"
 description   = "Updates 2da tlk entries and tlk table for NWN 1"
 license       = "MIT"
@@ -12,4 +12,4 @@ bin           = @["nwn_2da_tlkify"]
 # Dependencies
 
 requires "nim >= 1.4.8"
-requires "neverwinter >= 1.4.3"
+requires "neverwinter >= 1.4.4"
