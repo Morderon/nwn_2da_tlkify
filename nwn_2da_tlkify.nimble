@@ -1,12 +1,12 @@
 # Package
 
-version       = "0.1.2"
+version       = "0.1.3"
 author        = "Morderon"
 description   = "Updates 2da tlk entries and tlk table for NWN 1"
 license       = "MIT"
 srcDir        = "src"
 binDir        = "bin"
-bin           = @["nwn_2da_tlkify"]
+bin           = @["nwn_scrollmake", "nwn_2da_tlkify"]
 
 
 # Dependencies
