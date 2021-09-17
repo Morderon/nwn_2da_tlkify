@@ -128,3 +128,52 @@ The above json will generate a Name value of Orc and NamePlural will automatical
 SpellDesc and Name field from spells.2da isn't fully supported. Depending on how you use this tool, the tlk strrefs may change from one use to the next which will cause scroll items to have the wrong description.
 
 This can be avoided by using the --reserv-spells option.
+
+# nwn_scrollmake
+
+A tool to generate uti files for scrolls
+
+## Command line
+
+```
+  -i 2DADIR                   2da DIR. This directory should contain spells.2da, classes.2da, iprp_spells.2da and des_crft_scroll.2da.
+                              Config key: indir
+  -j SPELL                    The path of the file spells.json. Config Key: spellsjson
+  -o OUTDIR                   Output directory. Config key: outdir
+  -m                          Manages des_crft_scroll.2da Will add the necessary columns/rows and fill it out.
+                              Config Key: managecrft true/false
+  -t TLK                      Use tlk values instead of tlk reference. Should contain the path to a tlk file. Config Key: tlkpath
+  -c CONFIG                   Path to config file. [default: scrollmake.ini]
+  -p PRE                      The prefix if there's no current scroll resref. Config key: prefix [default: tc_scr_]
+  -d PLT                      The palette id. Config key: palID [default: 26]
+```
+
+## Config file
+
+You can create a config file with the above Config keys, the section should be titled [Scrollmake]
+
+## How it works
+
+Reads classes.2da to determine what classes are able to cast spells.
+
+Reads des_crft_scroll.2da to get the current scroll resref, if none is found it will create a scroll with the prefix defined with -p flag followed by the spell ID.
+
+Reads spells.2da to determine what spells are castable (have a valid label, name, desc, innate level, and a casting class)
+
+Reads through iprp_spells.2da and grabs the first item property that corresponds with the spell.
+
+Then if it's not a raise dead, neutralize posion, remove disease, etc... the scrolls that normally don't have use restrictions it will apply the class restrictions.
+
+For the scroll's name/description fields it uses the tlk file's strref. Optionally you can specify a tlk file (with -t) to use the tlk tables values instead.
+
+With the -m flag, a des_crft_scroll.2da will be generated filled out with additional columns/rows and the values set to the scroll resref if the class can cast the spell. Note: If a class loses a spell, the resref won't be removed from des_crft_scroll.2da but this hardly matters because if they can't cast the spell they can't craft it.
+
+## Advanced
+
+### How to handle multiple item properties corresponding to the same spell:
+
+Within a json file, which can be the same spells.2da used for nwn_2da_tlkify. You can specifiy a "scroll" field with a value of the iprp_spells row
+
+### How to handle domain spells  
+
+Within the above json file, you can also set "domain":true if you want the scroll to be cleric restricted even if they can't usually cast it (Example: Barkskin)

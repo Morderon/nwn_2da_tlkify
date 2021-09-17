@@ -1,3 +1,6 @@
+* New in 0.1.3
+  nwn_scrollmake: see Readme
+
 * New in 0.1.2
   New automated options:
     --auto-plural When on fills out the Plural Columns within classes and racialtypes.2da from the Name field, the function that determines how to plural is rather basic

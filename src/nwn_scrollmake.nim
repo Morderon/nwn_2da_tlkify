@@ -5,7 +5,7 @@ let doc = """
 Create scrolls
 
 Usage:
-  nwn_2da_tlkify [options]
+  nwn_scrollmake [options]
 
 Options:
   -i 2DADIR                   2da DIR. This directory should contain spells.2da, classes.2da, iprp_spells.2da and des_crft_scroll.2da.
@@ -17,10 +17,43 @@ Options:
   -t TLK                      Use tlk values instead of tlk reference. Should contain the path to a tlk file. Config Key: tlkpath
   -c CONFIG                   Path to config file. [default: scrollmake.ini]
   -p PRE                      The prefix if there's no current scroll resref. Config key: prefix [default: tc_scr_]
+  -d PLT                      The palette id. Config key: palID [default: 26]
 
  """
 
+
 let args = docopt(doc)
+
+let configf = $args["-c"]
+
+var
+ dir = $args["-i"]
+ outdir = $args["-o"]
+ tlkf = $args["-t"]
+ mancr = args["-m"].to_bool()
+ spjsonf = $args["-j"]
+ dict: Config
+ prefix =  $args["-p"]
+ pid = parseInt($args["-d"])
+
+if fileExists(configf):
+  dict = loadConfig(configf)
+  if dir == "nil":
+    dir = dict.getSectionValue("Scrollmake","indir", "nil")
+  if outdir == "nil":
+    outdir = dict.getSectionValue("Scrollmake","outdir", "nil")
+  if spjsonf == "nil":
+    spjsonf = dict.getSectionValue("Scrollmake","spellsjson", "nil")
+  if not mancr:
+    let val = dict.getSectionValue("Scrollmake","managecrft", "false")
+    if val == "true":
+      mancr = true
+  if tlkf == "nil":
+    tlkf = dict.getSectionValue("Scrollmake","tlkpath", "nil")
+  if prefix == "tc_scr_":
+    prefix = dict.getSectionValue("Scrollmake","prefix", "tc_scr_")
+  if pid == 26:
+    pid = parseInt(dict.getSectionValue("Scrollmake","palID", "26"))
 
 proc newProperty(self: var GffList, entry: int) =
   self.add(newGffStruct(0))
@@ -51,7 +84,7 @@ proc scrollTemplate(): GffRoot =
   result["Identified", GffByte] = 1
   result["LocalizedName", GffCexoLocString] = newCExoLocString()
   result["ModelPart1", GffByte] = 0
-  result["PaletteID", GffByte] = 26
+  result["PaletteID", GffByte] = pid.GffByte
   result["Plot", GffByte] = 0
   result["Plot", GffByte] = 0
   result["Stolen", GffByte] = 0
@@ -73,40 +106,9 @@ proc isValid(cell: Cell): bool =
   if cell.isSome:
     result = true
 
-
-let configf = $args["-c"]
-
-var
- dir = $args["-i"]
- outdir = $args["-o"]
- tlkf = $args["-t"]
- mancr = args["-m"].to_bool()
- spjsonf = $args["-j"]
- dict: Config
- prefix =  $args["-p"]
-
- 
-if fileExists(configf):
-  dict = loadConfig(configf)
-  if dir == "nil":
-    dir = dict.getSectionValue("Scrollmake","indir", "nil")
-  if outdir == "nil":
-    outdir = dict.getSectionValue("Scrollmake","outdir", "nil")
-  if spjsonf == "nil":
-    spjsonf = dict.getSectionValue("Scrollmake","spellsjson", "nil")
-  if not mancr:
-    let val = dict.getSectionValue("Scrollmake","managecrft", "false")
-    if val == "true":
-      mancr = true
-  if tlkf == "nil":
-    tlkf = dict.getSectionValue("Scrollmake","tlkpath", "nil")
-  if prefix == "tc_scr_":
-    prefix = dict.getSectionValue("Scrollmake","prefix", "tc_scr_")  
-    
-
 if outdir == "nil":
   quit("No output directory specified.")
-  
+
 let
   classf = dir&"classes.2da"
   crftscf = dir&"des_crft_scroll.2da"
@@ -164,7 +166,7 @@ crftscrs.close
 for i in classes.keys:
   let col =crftscr.columns.find(i)
   if col > -1:
-    scrollc.add(col)  
+    scrollc.add(col)
   elif mancr:
     var seq = crftscr.columns
     seq.add(i)
